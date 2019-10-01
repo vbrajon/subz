@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" style="-webkit-app-region: drag">
+<head>
+  <meta charset="utf-8">
+  <style>
+    html, body, main { width: 100%;height: 100%;margin: 0;padding: 0; }
+    main { background: rgb(255, 255, 255, .1);color: white;font-family: Helvetica Neue; }
+    h1 { margin: 40px;text-align: center; }
+    .progress { display: flex;cursor: pointer;width: calc(100% - 160px);height: 3px;padding: 10px 80px 10px; }
+    .current { height: 3px;background: rgb(221, 221, 221); }
+    .indicator { z-index: 1;margin: -6px;width: 15px;height: 15px;background: rgb(221, 221, 221);border-radius: 50%; }
+    .rest { flex: 1;height: 3px;background: rgb(64, 64, 64); }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="progress"><div class="current"></div><div class="indicator"></div><div class="rest"></div></div>
+    <h1></h1>
+  </main>
+  <script>
+    window.$ = s => document.querySelector(s)
+    window.addEventListener('mousemove', e => {
+      if (e.pageY > 20) return
+      const perc = (e.pageX - 80) / (window.innerWidth - 160)
+      $('.current').style = `width: ${perc * 100}%;`
+      $('h1').innerHTML = (subtitles.find(d => d[0] > perc * window.duration && perc * window.duration < d[1]) || [])[2] || ''
+    })
+    fetch('noe.srt')
+      .then(r => r.text())
+      .then(r => {
+        window.subtitles = r
+          .split(/[\n\r]{4}/)
+          .map(g => g.split(/\n/))
+          .map(([n, t, txt]) => t.split(' --> ').map(t => t.split(/[:,Z]/).reduce((acc, v, i) => acc += v * ([3600000, 60000, 1000, 1][i] || 0), 0)).concat(txt))
+        window.duration = +subtitles.slice(-1)[0][1]
+      })
+    // window.addEventListener('dblclick', e => {
+    //   alert('Subtitle seeked')
+    // })
+  </script>
+</body>
+</html>
